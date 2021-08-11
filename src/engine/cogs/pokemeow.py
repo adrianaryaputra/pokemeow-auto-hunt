@@ -1,11 +1,16 @@
 import asyncio
+from asyncio.threads import to_thread
 from random import random
 import re
-from time import time
+import time
 import discord
 from discord.ext import commands as BotCmd
+from discord.ext import tasks as BotTask
+from threading import Thread
 
 from ..configurator import cfg
+from tools.messageBuffer import MessageBuffer
+from tools.discordMessageSender import DiscordMsgSend, send as sender
 
 
 
@@ -23,6 +28,8 @@ class PokeMeowRarity:
 
     def ball(self) -> str:
         return self.balls
+
+
 
 
 class PokeMeowRarityType:
@@ -65,8 +72,6 @@ class PokeMeowRarityType:
         return None
 
 
-    
-
 
 
 class PokeMeowMeets(BotCmd.Cog):
@@ -76,8 +81,9 @@ class PokeMeowMeets(BotCmd.Cog):
         self.bot = bot
         self.token = cfg.getToken()
         self.enabled = cfg.getPokeMeow()
-        self.limiter = time()
         self.catchlock = None
+        self.messageBuffer = MessageBuffer()
+        self.messageSender.start()
 
 
     @BotCmd.Cog.listener()
@@ -85,17 +91,12 @@ class PokeMeowMeets(BotCmd.Cog):
         """
         handle incoming message        
         """
-
-        if not self.enabled:
-            print("PokeMeow disabled")
-            return
-
+        if not self.enabled: return
         await self.handleCommandStart(message)
-
-        if str(message.author) != "PokéMeow#6691":
-            return
-
+        if str(message.author) != "PokéMeow#6691": return
         await self.handleCommandP(message)
+        await self.handleWaitTime(message)
+        await self.handleCaptcha(message)
 
 
 
@@ -105,14 +106,24 @@ class PokeMeowMeets(BotCmd.Cog):
         """
         handle message edit
         """
-
-        if not self.enabled:
-            return
-
-        if str(new.author) != "PokéMeow#6691":
-            return
-
+        if not self.enabled: return
+        if str(new.author) != "PokéMeow#6691": return
         await self.handleCommandF(new)
+
+
+    
+
+    @BotTask.loop(seconds=2)
+    async def messageSender(self) -> None:
+        """
+        send message on cog buffer if it exist
+        """
+        if not self.enabled: return
+        msg: DiscordMsgSend = self.messageBuffer.get()
+        print("catch lock: " + self.catchlock) if self.catchlock else None
+        if msg: 
+            print(f"sending message: {msg}")
+            await msg.send()
 
         
 
@@ -124,60 +135,71 @@ class PokeMeowMeets(BotCmd.Cog):
             regex = re.search(r"\*\*(.+)\*\* found a", msg) if msg else None
             return regex.group(1) if regex else None
 
+        def _getPokeRarity(msg: str) -> PokeMeowRarity:
+            regex = re.search(PokeMeowRarityType.compiledRe(), msg) if msg else None
+            regroup = regex.group(1) if regex else None
+            return PokeMeowRarityType.reg2type(regroup) if regroup else None
+
         targetname = _getTargetName(message.content)
-
-        if not targetname: return
-
         embed: discord.Embed = message.embeds[0] if message.embeds else None
-        embFootContent = None
-
+        if not targetname: return
         if embed.footer: embFootContent = embed.footer.text or None
+        rarity = _getPokeRarity(embFootContent)
         if not embFootContent: return
-
-        rarity = self._getPokeRarity(embFootContent)
-        
         if not rarity: return
         if targetname != self.bot.user.name: return
-
-        # limiter waiting
-        wait = max(1, self.limiter - time())
-        await asyncio.sleep(wait)
-        self.limiter = time() + 3
-        await message.channel.send(rarity.ball())
-        self.catchlock = None
-
+        self.sendMessage(rarity.ball(), message.channel, unlock=True)
         await asyncio.sleep(9 + random()*4)
-        wait = max(0, self.limiter - time())
-        await asyncio.sleep(wait)
-        self.limiter = time() + 3
-        l = 0
-        while self.catchlock:
-            await asyncio.sleep(0.1)
-            print(self.catchlock)
-            l+=1; 
-            if l >= 600: break
-        await message.channel.send(";p")
-        self.catchlock = ";p"
+        self.sendMessage(";p", message.channel, lock=";p", nolock=False)
+
+
+
+    async def handleWaitTime(self, message: discord.Message) -> None:
+
+        def _getmatch(msg: str):
+            regex = re.search(r"(please wait)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not self.enabled: return
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        print("caught waiting")
+        if not self.catchlock: return
+        rc: str = self.catchlock
+        self.catchlock = None
+        print("reset catchlock")
+        await asyncio.sleep(20 + random()*3)
+        self.sendMessage(rc, message.channel, lock=rc, nolock=False)
+
+
+
+
+    async def handleCaptcha(self, message: discord.Message) -> None:
+
+        def _getmatch(msg: str):
+            regex = re.search(r"(please respond with the number)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not self.enabled: return
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        self.catchlock = None
+        await asyncio.sleep(1)
+        self.messageBuffer.flush()
+
+        
 
 
 
     async def handleCommandStart(self, message: discord.Message) -> None:
-        
         if not self.enabled: return
         if str(message.author) != str(self.bot.user): return
-
         if message.content.startswith("let's start"):
-            await message.channel.send(";p")
-            self.catchlock = ";p"
-            l = 0
-            while self.catchlock:
-                await asyncio.sleep(0.1)
-                print(self.catchlock)
-                l+=1
-                if l >= 600: break
-            await asyncio.sleep(2)
-            await message.channel.send(";f")
-            self.catchlock = ";f"
+            print("=== LET'S START DETECTED ===")
+            self.sendMessage(";p", message.channel, lock=";p", nolock=False)
+            self.sendMessage(";f", message.channel, lock=";f", nolock=False)
 
 
 
@@ -191,10 +213,6 @@ class PokeMeowMeets(BotCmd.Cog):
             regex = re.search(r"(`PULL`)", msg) if msg else None
             return regex.group(1) if regex else None
 
-        def _getCaugth(msg: str):
-            regex = re.search(r"^\*\*(.[^<>]+)\*\* (fished out a wild)", msg) if msg else None
-            return regex.group(1) if regex else None
-
         def _getNibble(msg: str):
             regex = re.search(r"(Not even a nibble)", msg) if msg else None
             return regex.group(1) if regex else None
@@ -205,50 +223,43 @@ class PokeMeowMeets(BotCmd.Cog):
 
         embed: discord.Embed = message.embeds[0] if message.embeds else None        
         targetname: str = _getTargetName(embed.description) if embed else ''
-
         if targetname != self.bot.user.name: return
-
         pull: str = _getPULL(embed.description) if embed else None
-        # caught: str = _getCaugth(embed.description) if embed else None
         nibble: str = _getNibble(embed.description) if embed else None
         runaway: str = _getRunaway(embed.description) if embed else None
 
         if pull:
-            wait = max(0, self.limiter - time())
-            await asyncio.sleep(wait)
-            await message.channel.send('pull')
-            self.limiter = time() + 1
-
-            wait = max(0, self.limiter - time())
-            await asyncio.sleep(wait+random()*1)
-            await message.channel.send('gb')
-            self.limiter = time() + 2
+            self.sendMessage("pull", message.channel)
+            self.sendMessage("gb", message.channel, unlock=True)
             caught = 'caught'
-            self.catchlock = None
 
-                
         if nibble or runaway or caught:
             await asyncio.sleep(21 + random()*4)
-            wait = max(0, self.limiter - time())
-            await asyncio.sleep(wait)
-            self.limiter = time() + 2
+            self.sendMessage(";f", message.channel, lock=";f", nolock=False)
+
+
+
+    def sendMessage(self, msg: str, channel: discord.TextChannel, lock: str = None, unlock: bool = False, nolock: bool = True) -> None:
+
+        # don't push if already exist
+        print(self.messageBuffer.list())
+        if msg in [str(msg) for msg in self.messageBuffer.list()]: return
+        if msg == self.catchlock: return
+
+        def _sendmsg():
+            print("=== SENDING MESSAGE ===")
             l = 0
-            while self.catchlock:
-                await asyncio.sleep(0.1)
-                print(self.catchlock)
-                l+=1; 
-                if l >= 600: break
-            await message.channel.send(';f')
-            self.catchlock = ";f"
-        
+            if not nolock: 
+                while self.catchlock:
+                    time.sleep(0.5)
+                    l+=1
+                    if l >= 40: self.catchlock = None
+            print(f"add message to Buffer: {msg}")
+            self.messageBuffer.add(sender(msg, channel))
+            if lock: self.catchlock = lock
+            if unlock: self.catchlock = None
 
-
-    def _getPokeRarity(self, msg: str) -> PokeMeowRarity:
-        regex = re.search(PokeMeowRarityType.compiledRe(), msg)
-        if regex:
-            regroup = regex.group(1)
-            return PokeMeowRarityType.reg2type(regroup)
-        return None
+        Thread(target=_sendmsg).start()
 
 
 
