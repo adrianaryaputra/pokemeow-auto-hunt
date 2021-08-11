@@ -1,0 +1,7 @@
+discord.py-self
+aiohttp
+requests
+pyfiglet
+datetime
+urllib3
+asyncio
