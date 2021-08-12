@@ -49,7 +49,7 @@ class PokeRarities:
     SUPERRARE: PokeRarity = PokeRarity(r"Super Rare", "SuperRare", 5)
     LEGENDARY: PokeRarity = PokeRarity(r"Legendary", "Legendary", 6)
     SHINYA: PokeRarity = PokeRarity(r"Shiny \(A", "ShinyApprox", 7)
-    SHINYE: PokeRarity = PokeRarity(r"Shiny \(E", "ShinyExact", 8)
+    SHINYE: PokeRarity = PokeRarity(r"Shiny \(E", "ShinyEvent", 8)
 
     @classmethod
     def compiledRe(self) -> str:

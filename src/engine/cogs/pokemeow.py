@@ -19,36 +19,31 @@ class PokeMeow(BotCmd.Cog):
         self.bot = bot
         self.token = cfg.getToken()
         self.catchlock = None
+        self.catchlocklimit = 50
+        self.catchlockcount = 0
+        self.catchlocklimiter.start()
         self.messageBuffer = MessageBuffer()
         self.messageSender.start()
-
 
     @BotCmd.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         """
         handle incoming message        
         """
-        if not cfg.getPokeMeow(): return
-        await self.handleCommandStart(message)
-        if str(message.author) != "PokéMeow#6691": return
-        await self.handleCommandP(message)
-        await self.handleWaitTime(message)
-        await self.handleCaptcha(message)
-
-
-
+        if str(message.author) == "PokéMeow#6691":
+            await self.handleCommandP(message)
+            await self.handleWaitTime(message)
+            await self.handleCaptcha(message)
+            await self.handleCaptchaComplete(message)
+            return
 
     @BotCmd.Cog.listener()
     async def on_message_edit(self, old: discord.Message, new: discord.Message) -> None:
         """
         handle message edit
         """
-        if not cfg.getPokeMeow(): return
         if str(new.author) != "PokéMeow#6691": return
         await self.handleCommandF(new)
-
-
-    
 
     @BotTask.loop(seconds=0.5)
     async def messageSender(self) -> None:
@@ -62,6 +57,75 @@ class PokeMeow(BotCmd.Cog):
             await msg.send()
 
 
+    @BotCmd.command(pass_context=True)
+    async def poke(self, ctx: BotCmd.Context, toggle: str = "", poke_cmd: str = "") -> None:
+        """
+        send poke command
+        """
+        togglesel = ["start", "stop"]
+        pokecmdsel = ["p", "f"]
+        example = f"example: `$poke {togglesel[0]} {pokecmdsel[0]}`"
+
+        await ctx.message.delete()
+
+        if not cfg.getPokeMeow():
+            await ctx.send("PokeMeow is `Disabled`! you should enable it to use this command...")
+            return
+        if toggle == "":
+            await ctx.send(f"you should specify toggle {togglesel}. {example}")
+            return
+        if toggle not in togglesel:
+            await ctx.send(f"toggle should be one of {togglesel}. {example}")
+            return
+        if poke_cmd == "":
+            await ctx.send(f"you should specify poke command {pokecmdsel}. {example}")
+            return
+        if poke_cmd not in pokecmdsel:
+            await ctx.send(f"poke command should be one of {pokecmdsel}. {example}")
+            return
+        if toggle == "start":
+            if poke_cmd == "p": 
+                self.channelP = ctx.channel
+                if not self.loopP.is_running(): self.loopP.start()
+            if poke_cmd == "f": 
+                self.channelF = ctx.channel
+                if not self.loopF.is_running(): self.loopF.start()
+        if toggle == "stop":
+            if poke_cmd == "p": 
+                if self.loopP.is_running(): self.loopP.stop()
+                self.channelP = None
+            if poke_cmd == "f": 
+                if self.loopF.is_running(): self.loopF.stop()
+                self.channelF = None
+
+
+    @BotTask.loop(seconds=cfg.getPokeDelay(2))
+    async def loopF(self) -> None:
+        """
+        handle run f command every duration
+        """
+        self.sendMessage(";f", self.channelF, lock=";f", nolock=False)
+        self.loopF.change_interval(seconds=cfg.getPokeDelay(2))
+        print("Sending F")
+
+
+    @BotTask.loop(seconds=cfg.getPokeDelay(1))
+    async def loopP(self) -> None:
+        """
+        handle run p command every duration
+        """
+        self.sendMessage(";p", self.channelP, lock=";p", nolock=False)
+        self.loopP.change_interval(seconds=cfg.getPokeDelay(1))
+        print("Sending P")
+
+
+    @BotTask.loop(seconds=0.1)
+    async def catchlocklimiter(self) -> None:
+        if self.catchlock: self.catchlockcount += 1
+        else : self.catchlockcount = 0
+        if self.catchlockcount >= self.catchlocklimit: 
+            self.catchlock = None
+            self.catchlockcount = 0
 
 
     def handleBuyBall(self, channel: discord.TextChannel) -> None:
@@ -77,8 +141,6 @@ class PokeMeow(BotCmd.Cog):
         if PokeBalls.Master.shouldbuy():
             self.sendMessage(PokeBalls.Master.buy(), channel)
             
-
-        
 
     async def handleCommandP(self, message: discord.Message) -> None:
 
@@ -112,8 +174,6 @@ class PokeMeow(BotCmd.Cog):
         _getPokeBall(embFootContent)
         self.sendMessage(rarity.ball(), message.channel, unlock=True)
         self.handleBuyBall(message.channel)
-        await asyncio.sleep(cfg.getPokeDelay(1))
-        self.sendMessage(";p", message.channel, lock=";p", nolock=False)
 
 
 
@@ -123,7 +183,6 @@ class PokeMeow(BotCmd.Cog):
             regex = re.search(r"(please wait)", msg) if msg else None
             return regex.group(1) if regex else None
 
-        if not cfg.getPokeMeow(): return
         if not _getmatch(message.content): return
         me = [name for name in message.mentions if name.id == self.bot.user.id]
         if not len(me): return
@@ -131,9 +190,6 @@ class PokeMeow(BotCmd.Cog):
         if not self.catchlock: return
         rc: str = self.catchlock
         self.catchlock = None
-        print("reset catchlock")
-        await asyncio.sleep(5)
-        self.sendMessage(rc, message.channel, lock=rc, nolock=False)
 
 
 
@@ -144,31 +200,25 @@ class PokeMeow(BotCmd.Cog):
             regex = re.search(r"(please respond with the number)", msg) if msg else None
             return regex.group(1) if regex else None
 
-        if not cfg.getPokeMeow(): return
         if not _getmatch(message.content): return
         me = [name for name in message.mentions if name.id == self.bot.user.id]
         if not len(me): return
         print("CAPTCHA DETECTED!!")
-        print(message.content)
-        print(message.embeds)
-        print(message.attachments)
-        flush = 30
-        while flush: 
-            self.catchlock = None
-            asyncio.sleep(0.1)
-            flush -= 1
-        self.messageBuffer.flush()
-        
+        cfg.setPokeMeow(False)
 
 
+    async def handleCaptchaComplete(self, message: discord.Message) -> None:
 
-    async def handleCommandStart(self, message: discord.Message) -> None:
-        if not cfg.getPokeMeow(): return
-        if str(message.author) != str(self.bot.user): return
-        if message.content.startswith("let's start"):
-            print("=== LET'S START DETECTED ===")
-            self.sendMessage(";p", message.channel, lock=";p", nolock=False)
-            self.sendMessage(";f", message.channel, lock=";f", nolock=False)
+        def _getmatch(msg: str):
+            regex = re.search(r"(thank you, you may continue hunting!)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        print("CAPTCHA COMPLETE")
+        cfg.setPokeMeow(True)
+        self.catchlock = False
 
 
 
@@ -209,9 +259,9 @@ class PokeMeow(BotCmd.Cog):
             print("RUNAWAY DETECTED")
             self.catchlock = False
 
-        if nibble or runaway or caught:
-            await asyncio.sleep(cfg.getPokeDelay(2))
-            self.sendMessage(";f", message.channel, lock=";f", nolock=False)
+        # if nibble or runaway or caught:
+        #     await asyncio.sleep(cfg.getPokeDelay(2))
+        #     self.sendMessage(";f", message.channel, lock=";f", nolock=False)
 
 
 
@@ -221,18 +271,11 @@ class PokeMeow(BotCmd.Cog):
         if msg in [str(msg) for msg in self.messageBuffer.list()]: return
         if msg == self.catchlock: return
 
-        def _sendmsg():
-            l = 0
-            if not nolock: 
-                while self.catchlock:
-                    time.sleep(0.1)
-                    l+=1
-                    if l >= 200: self.catchlock = None
-            self.messageBuffer.add(sender(msg, channel))
-            if lock: self.catchlock = lock
-            if unlock: self.catchlock = None
-
-        Thread(target=_sendmsg).start()
+        if not nolock: 
+            if self.catchlock: return
+        self.messageBuffer.add(sender(msg, channel))
+        if lock: self.catchlock = lock
+        if unlock: self.catchlock = None
 
 
 

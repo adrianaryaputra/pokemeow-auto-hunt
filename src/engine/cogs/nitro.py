@@ -21,9 +21,7 @@ class Nitro(BotCmd.Cog):
         """
 
         # if nitro is disabled
-        if not cfg.getNitro():
-            print("nitro disabled")
-            return
+        if not cfg.getNitro(): return
 
         # find nitro gift regex
         reggrp = self._findNitroGiftRe(message.content)

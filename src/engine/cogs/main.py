@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 import discord
 from discord.ext import commands as BotCmd
@@ -20,6 +21,7 @@ class Main(BotCmd.Cog):
         """
         ping the bot
         """
+        await ctx.message.delete()
         await ctx.send(f"pong! {self.bot.latency}")
 
     @BotCmd.command(aliases=["h"])
@@ -27,22 +29,25 @@ class Main(BotCmd.Cog):
         """
         show help
         """
+        await ctx.message.delete()
         emb = discord.Embed(title="Welcome to PokeMeow Sniper Bot!", color=discord.Color(0))
         emb.description = txt_help_desc()
         emb.add_field(name="`$help`,  `$h`", value="Show you this window\n‎", inline=False)
         emb.add_field(name="`$ping`,  `$p`", value="Play Ping-Pong with you\n‎", inline=False)
-        emb.add_field(name="`$config`,  `$stats`,  `$c`", value="Show config parameter\n‎", inline=False)
-        emb.add_field(name="`$set`,  `$s`", value="Set config parameter\n‎", inline=False)
-        emb.add_field(name="`$start [nitro|pokemeow]`,  `$r`", value="Start / Enable bot\n‎", inline=False)
-        emb.add_field(name="`$stop [nitro|pokemeow]`,  `$x`", value="Stop / Disable bot\n‎", inline=False)
+        emb.add_field(name="`$config`,  `$stats`,  `$q`", value="Show config parameter\n‎", inline=False)
+        emb.add_field(name="`$set`,  `$e`", value="Set config parameter\n‎", inline=False)
+        emb.add_field(name="`$enable [nitro|pokemeow]`", value="Enable bot\n‎", inline=False)
+        emb.add_field(name="`$disable [nitro|pokemeow]`", value="Disable bot\n‎", inline=False)
+        emb.add_field(name="`$poke [start|stop] <p|f>`", value="start auto poke catch or fish\n‎", inline=False)
         emb.set_footer(text = txt_footl())
         await ctx.send(embed=emb)
 
-    @BotCmd.command(aliases=["stats", "c"])
+    @BotCmd.command(aliases=["stats", "q"])
     async def config(self, ctx: BotCmd.Context) -> None:
         """
         show configuration
         """
+        await ctx.message.delete()
         emb = discord.Embed(title="PokeMeow Sniper Configuration", color=discord.Color(0))
         emb.description = txt_config_desc()
         emb.add_field(name="**Bot Running**", value=txt_config_f_botrun(), inline=False)
@@ -51,14 +56,17 @@ class Main(BotCmd.Cog):
         emb.add_field(name="**PokeMeow Ball Buying Lot**", value=txt_config_f_lot(), inline=False)
         emb.add_field(name="**PokeMeow Catch Ball Selection**", value=txt_config_f_rarity(), inline=False)
         emb.set_footer(text=txt_footl())
-        await ctx.send(embed=emb)
+        msg = await ctx.send(embed=emb)
+        await asyncio.sleep(5)
+        await msg.delete()
 
 
-    @BotCmd.command(aliases=["s"])
+    @BotCmd.command(aliases=["e"])
     async def set(self, ctx: BotCmd.Context, mode: str = "", variable: str = "", value: str = "") -> None:
         """
         set configuration
         """
+        await ctx.message.delete()
         modesel = ["delay", "stock", "buy", "catch"]
         ballbuyable = [str(b).lower() for b in PokeBalls.getBalls()][0:4]
         ballsel = [str(b).lower() for b in PokeBalls.getBalls()]
@@ -74,61 +82,87 @@ class Main(BotCmd.Cog):
             emb.add_field(name=f"`$set {modesel[2]} [{'|'.join(ballbuyable)}] <num>`", value=f"change amount of ball to buy at once\n‎", inline=False)
             emb.add_field(name=f"`$set {modesel[3]} [rarity] <ball>`", value=txt_set_catch(ballsel, raritysel), inline=False)
             emb.set_footer(text=txt_footl())
-            await ctx.send(embed=emb)
+            msg = await ctx.send(embed=emb)
+            await asyncio.sleep(5)
+            await msg.delete()
 
         elif mode == "delay":
-            await ctx.send(embed = self.handleDelay(variable, value, pokecmd))
+            msg = await ctx.send(embed = self.handleDelay(variable, value, pokecmd))
+            await asyncio.sleep(5)
+            await msg.delete()
 
         elif mode == "stock":
-            await ctx.send(embed = self.handleStock(variable, value, ballbuyable))
+            msg = await ctx.send(embed = self.handleStock(variable, value, ballbuyable))
+            await asyncio.sleep(5)
+            await msg.delete()
 
         elif mode == "buy":
-            await ctx.send(embed = self.handleBuy(variable, value, ballbuyable))
+            msg = await ctx.send(embed = self.handleBuy(variable, value, ballbuyable))
+            await asyncio.sleep(5)
+            await msg.delete()
 
         elif mode == "catch":
-            await ctx.send(embed = self.handleCatch(variable, value, ballsel, raritysel))
+            msg = await ctx.send(embed = self.handleCatch(variable, value, ballsel, raritysel))
+            await asyncio.sleep(5)
+            await msg.delete()
 
         else:
-            await ctx.send(embed = emb_wrong_mode("set", mode, modesel))
+            msg = await ctx.send(embed = emb_wrong_mode("set", mode, modesel))
+            await asyncio.sleep(5)
+            await msg.delete()
 
-    @BotCmd.command(aliases=["r"])
-    async def start(self, ctx: BotCmd.Context, mode: str = "") -> None:
+    @BotCmd.command()
+    async def enable(self, ctx: BotCmd.Context, mode: str = "") -> None:
         """
-        start bot
+        enable bot
         """
         bots = ["nitro", "pokemeow"]
-        example = f"\nexample: `$start {bots[0]}`"
+        example = f"\nexample: `$enable {bots[0]}`"
+        await ctx.message.delete()
         if mode == "":
-            await ctx.send(embed = emb_unspecified_mode("start", bots, example))
+            msg = await ctx.send(embed = emb_unspecified_mode("enable", bots, example))
+            await asyncio.sleep(5)
+            await msg.delete()
             return
         if mode.lower() == "nitro":
             cfg.setNitro(True)
         elif mode.lower() == "pokemeow":
             cfg.setPokeMeow(True)
         else:
-            await ctx.send(embed = emb_wrong_mode("start", mode, bots))
+            msg = await ctx.send(embed = emb_wrong_mode("enable", mode, bots))
+            await asyncio.sleep(5)
+            await msg.delete()
             return
-        await ctx.send(embed = emb_success("Success!", f"`{mode.capitalize()}` is `{toggleMaker(True)}`..."))
+        msg = await ctx.send(embed = emb_success("Success!", f"`{mode.capitalize()}` is `{toggleMaker(True)}`..."))
+        await asyncio.sleep(5)
+        await msg.delete()
 
 
-    @BotCmd.command(aliases=["x"])
-    async def stop(self, ctx: BotCmd.Context, mode: str = "") -> None:
+    @BotCmd.command()
+    async def disable(self, ctx: BotCmd.Context, mode: str = "") -> None:
         """
         stop bot
         """
         bots = ["nitro", "pokemeow"]
-        example = f"\nexample: `$stop {bots[0]}`"
+        example = f"\nexample: `$disable {bots[0]}`"
+        await ctx.message.delete()
         if mode == "":
-            await ctx.send(embed = emb_unspecified_mode("stop", bots, example))
+            msg = await ctx.send(embed = emb_unspecified_mode("disable", bots, example))
+            await asyncio.sleep(5)
+            await msg.delete()
             return
         if mode.lower() == "nitro":
             cfg.setNitro(False)
         elif mode.lower() == "pokemeow":
             cfg.setPokeMeow(False)
         else:
-            await ctx.send(embed = emb_wrong_mode("stop", mode, bots))
+            msg = await ctx.send(embed = emb_wrong_mode("disable", mode, bots))
+            await asyncio.sleep(5)
+            await msg.delete()
             return
-        await ctx.send(embed = emb_success("Success!", f"`{mode.capitalize()}` is `{toggleMaker(False)}`..."))
+        msg = await ctx.send(embed = emb_success("Success!", f"`{mode.capitalize()}` is `{toggleMaker(False)}`..."))
+        await asyncio.sleep(5)
+        await msg.delete()
 
 
 

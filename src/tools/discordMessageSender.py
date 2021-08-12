@@ -1,3 +1,4 @@
+import asyncio
 import discord
 
 
@@ -12,7 +13,9 @@ class DiscordMsgSend:
         return self.message
 
     async def send(self) -> None:
-        await self.channel.send(self.message)
+        msg = await self.channel.send(self.message)
+        await asyncio.sleep(0.3)
+        await msg.delete()
 
 
 def send(message: str, channel: discord.TextChannel) -> DiscordMsgSend:
