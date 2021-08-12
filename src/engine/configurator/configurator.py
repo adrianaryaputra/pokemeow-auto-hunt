@@ -37,6 +37,7 @@ class Config(BasicPublisher):
         class BotValue:
             token = self._cfg.getConfigOption("Discord", "token")
             prefix = self._cfg.getConfigOption("Opt", "prefix")
+            nickname = self._cfg.getConfigOption("PokeMeow", "nickname")
             
             nitro = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "nitro"))
             giveaway = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "giveaway"))
@@ -210,6 +211,22 @@ class Config(BasicPublisher):
         """
         if poke is None: return self.value.poke_throw
         return self.value.poke_throw[poke-1]
+
+    
+    def setNickname(self, nickname: str) -> None:
+        """
+        Sets the value for the nickname option. 
+        """
+        self.value.nickname = nickname
+        self.notifySub({"nickname": nickname})
+        self._cfg.setConfigOption("PokeMeow", "nickname", nickname)
+
+    
+    def getNickname(self) -> str:
+        """
+        Returns the value for the nickname option.
+        """
+        return self.value.nickname
 
 
 cfg: Config = Config()

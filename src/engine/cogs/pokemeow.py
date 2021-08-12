@@ -62,7 +62,7 @@ class PokeMeow(BotCmd.Cog):
         """
         send poke command
         """
-        togglesel = ["start", "stop"]
+        togglesel = ["start", "stop", "nick"]
         pokecmdsel = ["p", "f"]
         example = f"example: `$poke {togglesel[0]} {pokecmdsel[0]}`"
 
@@ -76,6 +76,9 @@ class PokeMeow(BotCmd.Cog):
             return
         if toggle not in togglesel:
             await ctx.send(f"toggle should be one of {togglesel}. {example}")
+            return
+        if toggle == "nick":
+            cfg.setNickname(poke_cmd)
             return
         if poke_cmd == "":
             await ctx.send(f"you should specify poke command {pokecmdsel}. {example}")
@@ -97,6 +100,7 @@ class PokeMeow(BotCmd.Cog):
             if poke_cmd == "f": 
                 if self.loopF.is_running(): self.loopF.stop()
                 self.channelF = None
+
 
 
     @BotTask.loop(seconds=cfg.getPokeDelay(2))
@@ -225,11 +229,23 @@ class PokeMeow(BotCmd.Cog):
     async def handleCommandF(self, message: discord.Message) -> None:
         
         def _getTargetName(msg: str):
-            regex = re.search(r"\*\*(.[^<>]+)\*\* ", msg) if msg else None
+            regex = re.search(r"\*\*(.[^<>*]+)\*\* ", msg) if msg else None
             return regex.group(1) if regex else None
 
         def _getPULL(msg: str):
             regex = re.search(r"(`PULL`)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        def _getPokeName(msg: str) -> str:
+            regex = re.search(r"(Kyoigre|Suicune)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        def _getPokeShiny(msg: str) -> bool:
+            regex = re.search(r"(Shiny|Golden)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        def _getPokeFished(msg: str) -> str:
+            regex = re.search(r"(fished out)", msg) if msg else None
             return regex.group(1) if regex else None
 
         def _getNibble(msg: str):
@@ -240,28 +256,56 @@ class PokeMeow(BotCmd.Cog):
             regex = re.search(r"(got away)", msg) if msg else None
             return regex.group(1) if regex else None
 
+        pull: str = None
+        nibble: str = None
+        runaway: str = None
+        pokeusedb: str = None
+        pokeusemb: str = None
+        pokeusegb: str = None
+
         embed: discord.Embed = message.embeds[0] if message.embeds else None        
-        targetname: str = _getTargetName(embed.description) if embed else ''
-        if targetname != self.bot.user.name: return
-        pull: str = _getPULL(embed.description) if embed else None
-        nibble: str = _getNibble(embed.description) if embed else None
-        runaway: str = _getRunaway(embed.description) if embed else None
+        embedname: str = _getTargetName(embed.description) if embed else ''
+
+        if embedname.lower() in [str(self.bot.user.name).lower(), cfg.getNickname().lower()]:
+            pull = _getPULL(embed.description) if embed else None
+            nibble = _getNibble(embed.description) if embed else None
+            runaway = _getRunaway(embed.description) if embed else None
+            pokeusedb = _getPokeName(embed.description) if embed else None
+            pokeusemb = _getPokeShiny(embed.description) if embed else None
+            pokeusegb = _getPokeFished(embed.description) if embed else None
+
 
         if pull:
+            print("PULL!")
             self.sendMessage("pull", message.channel)
+            return
+
+        if pokeusedb:
+            print("POKE CATCH LEGENDARY")
+            self.sendMessage("db", message.channel, unlock=True)
+            # self.catchlock = False
+            return
+
+        if pokeusemb:
+            print("POKE CATCH SHINY")
+            self.sendMessage("mb", message.channel, unlock=True)
+            # self.catchlock = False
+
+        if pokeusegb:
+            print("POKE CATCH FISH")
             self.sendMessage("gb", message.channel, unlock=True)
-            caught = 'caught'
+            # self.catchlock = False
+            return
 
         if nibble: 
             print("NIBBLE DETECTED")
             self.catchlock = False
+            return
+
         if runaway: 
             print("RUNAWAY DETECTED")
             self.catchlock = False
-
-        # if nibble or runaway or caught:
-        #     await asyncio.sleep(cfg.getPokeDelay(2))
-        #     self.sendMessage(";f", message.channel, lock=";f", nolock=False)
+            return
 
 
 
