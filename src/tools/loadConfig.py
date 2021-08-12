@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 from os import path
+from typing import List
 
 class ErrorSetConfigFailed(Exception):
     def __init__(self, error):
@@ -37,7 +38,7 @@ class ConfigLoader:
 
 
     @staticmethod
-    def yn2bool(value):
+    def yn2bool(value: str) -> bool:
         if value.lower() == 'enable':
             return True
         elif value.lower() == 'disable':
@@ -46,8 +47,24 @@ class ConfigLoader:
             raise ValueError('Invalid input', value)
 
     @staticmethod
-    def bool2yn(value):
+    def bool2yn(value: bool) -> str:
         if value:
             return 'Enable'
         else:
             return 'Disable'
+
+    @staticmethod
+    def str2intarr(value: str) -> List[int]:
+        return [int(x) for x in value.split(',')]
+
+    @staticmethod
+    def intarr2str(value: List[int]) -> str:
+        return ', '.join(str(x) for x in value)
+
+    @staticmethod
+    def str2strarr(value: str):
+        return value.replace(' ','').split(',')
+
+    @staticmethod
+    def strarr2str(value: List[str]):
+        return ', '.join(value)

@@ -12,7 +12,6 @@ class Nitro(BotCmd.Cog):
     def __init__(self, bot: BotCmd.Bot) -> None:
         self.bot = bot
         self.token = cfg.getToken()
-        self.enabled = cfg.getNitro()
 
 
     @BotCmd.Cog.listener()
@@ -22,7 +21,7 @@ class Nitro(BotCmd.Cog):
         """
 
         # if nitro is disabled
-        if not self.enabled:
+        if not cfg.getNitro():
             print("nitro disabled")
             return
 

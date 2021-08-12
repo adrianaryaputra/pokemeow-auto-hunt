@@ -36,12 +36,16 @@ class Config(BasicPublisher):
         """
         class BotValue:
             token = self._cfg.getConfigOption("Discord", "token")
-
             prefix = self._cfg.getConfigOption("Opt", "prefix")
-
+            
             nitro = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "nitro"))
             giveaway = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "giveaway"))
             pokemeow = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "pokemeow"))
+
+            poke_delay = self._cfg.str2intarr(self._cfg.getConfigOption("PokeMeow", "delay"))
+            poke_buyat = self._cfg.str2intarr(self._cfg.getConfigOption("PokeMeow", "buyat"))
+            poke_buyqty = self._cfg.str2intarr(self._cfg.getConfigOption("PokeMeow", "buyqty"))
+            poke_throw = self._cfg.str2strarr(self._cfg.getConfigOption("PokeMeow", "throw"))
 
         self.value = BotValue()
 
@@ -138,6 +142,74 @@ class Config(BasicPublisher):
         Returns the value for the prefix option.
         """
         return self.value.prefix
+
+
+    def setPokeDelay(self, poke: int, delay: int) -> None:
+        """
+        Sets the value for the poke delay option.
+        """
+        self.value.poke_delay[poke-1] = delay
+        self.notifySub({"delay": self.value.poke_delay})
+        self._cfg.setConfigOption("PokeMeow", "delay", self._cfg.intarr2str(self.value.poke_delay))
+
+    
+    def getPokeDelay(self, command: int = None) -> int:
+        """
+        Returns the value for the poke delay option.
+        """
+        if command is None: return self.value.poke_delay
+        return self.value.poke_delay[command-1]
+
+
+    def setPokeBuyAt(self, ball: int, buyAt: int) -> None:
+        """
+        Sets the value for the poke buy at option.
+        """
+        self.value.poke_buyat[ball-1] = buyAt
+        self.notifySub({"buyat": self.value.poke_buyat})
+        self._cfg.setConfigOption("PokeMeow", "buyat", self._cfg.intarr2str(self.value.poke_buyat))
+
+
+    def getPokeBuyAt(self, ball: int = None) -> int:
+        """
+        Returns the value for the poke buy at option.
+        """
+        if ball is None: return self.value.poke_buyat
+        return self.value.poke_buyat[ball-1]
+
+
+    def setPokeBuyQty(self, ball: int, buyQty: int) -> None:
+        """
+        Sets the value for the poke buy qty option.
+        """
+        self.value.poke_buyqty[ball-1] = buyQty
+        self.notifySub({"buyqty": self.value.poke_buyqty})
+        self._cfg.setConfigOption("PokeMeow", "buyqty", self._cfg.intarr2str(self.value.poke_buyqty))
+
+    
+    def getPokeBuyQty(self, ball: int = None) -> int:
+        """
+        Returns the value for the poke buy qty option.
+        """
+        if ball is None: return self.value.poke_buyqty
+        return self.value.poke_buyqty[ball-1]
+
+
+    def setPokeThrow(self, poke: int, ball: str) -> None:
+        """
+        Sets the value for the poke throw option.
+        """
+        self.value.poke_throw[poke-1] = ball
+        self.notifySub({"throw": self.value.poke_throw})
+        self._cfg.setConfigOption("PokeMeow", "throw", self._cfg.strarr2str(self.value.poke_throw))
+
+
+    def getPokeThrow(self, poke: int = None) -> str:
+        """
+        Returns the value for the poke throw option.
+        """
+        if poke is None: return self.value.poke_throw
+        return self.value.poke_throw[poke-1]
 
 
 cfg: Config = Config()
