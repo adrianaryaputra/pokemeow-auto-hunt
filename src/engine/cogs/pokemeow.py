@@ -162,7 +162,7 @@ class PokeMeow(BotCmd.Cog):
         if targetname != self.bot.user.name: return
         _getPokeBall(embFootContent)
         self.sendMessage(rarity.ball(), message.channel, unlock=True)
-        self.handleBuyBall(message.channel)
+        await self.handleBuyBall(message.channel)
 
 
 
@@ -304,17 +304,21 @@ class PokeMeow(BotCmd.Cog):
 
 
 
-    def handleBuyBall(self, channel: discord.TextChannel) -> None:
+    async def handleBuyBall(self, channel: discord.TextChannel) -> None:
         """
         handle buy ball
         """
         if PokeBalls.Reg.shouldbuy():
+            await asyncio.sleep(2)
             self.sendMessage(PokeBalls.Reg.buy(), channel)
         if PokeBalls.Great.shouldbuy():
+            await asyncio.sleep(2)
             self.sendMessage(PokeBalls.Great.buy(), channel)
         if PokeBalls.Ultra.shouldbuy():
+            await asyncio.sleep(2)
             self.sendMessage(PokeBalls.Ultra.buy(), channel)
         if PokeBalls.Master.shouldbuy():
+            await asyncio.sleep(2)
             self.sendMessage(PokeBalls.Master.buy(), channel)
 
 
