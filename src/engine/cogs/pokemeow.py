@@ -224,17 +224,17 @@ class PokeMeow(BotCmd.Cog):
             return
 
         if pokeusedb:
+            await asyncio.sleep(1)
             self.sendMessage("db", message.channel, unlock=True)
-            # self.catchlock = False
             return
 
         if pokeusemb:
+            await asyncio.sleep(1)
             self.sendMessage("mb", message.channel, unlock=True)
-            # self.catchlock = False
 
         if pokeusegb:
+            await asyncio.sleep(1)
             self.sendMessage("gb", message.channel, unlock=True)
-            # self.catchlock = False
             return
 
         if nibble: 
