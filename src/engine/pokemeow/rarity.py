@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-from .ball import PokeBalls
+from .ball import PokeBall, PokeBalls
 from engine.configurator import cfg
 
 
@@ -31,10 +31,10 @@ class PokeRarity:
     def ball(self) -> str:
         return str(self.balls)
 
-    def getBall(self) -> PokeBalls:
+    def getBall(self) -> PokeBall:
         return self.balls
 
-    def setBall(self, ball: PokeBalls) -> None:
+    def setBall(self, ball: PokeBall) -> None:
         self.balls = ball
         cfg.setPokeThrow(self.type, str(ball))
 

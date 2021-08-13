@@ -193,15 +193,10 @@ class Main(BotCmd.Cog):
             return emb_unspecified_value("stock", example)
         if not value.isdigit():
             return emb_wrong_value("stock", value, "number", example)
-        if ball_type.lower() == str(PokeBalls.Reg):
-            cfg.setPokeBuyAt(PokeBalls.Reg.type, int(value))
-        if ball_type.lower() == str(PokeBalls.Great):
-            cfg.setPokeBuyAt(PokeBalls.Great.type, int(value))
-        if ball_type.lower() == str(PokeBalls.Ultra):
-            cfg.setPokeBuyAt(PokeBalls.Ultra.type, int(value))
-        if ball_type.lower() == str(PokeBalls.Master):
-            cfg.setPokeBuyAt(PokeBalls.Master.type, int(value))
-        return emb_success("Success!", f"Stock for `{ball_type}` is set to `{value}`")
+
+        pb = PokeBalls.findball(ball_type)
+        pb.setMinimal(int(value))
+        return emb_success("Success!", f"Stock for `{pb.name}` is set to `{str(pb.minimal)}`")
 
 
     def handleBuy(self, variable: str, value: str, mode_balls: List[str]) -> None:
@@ -214,15 +209,10 @@ class Main(BotCmd.Cog):
             return emb_unspecified_value("buy", example)
         if not value.isdigit():
             return emb_wrong_value("buy", value, "number", example)
-        if variable.lower() == str(PokeBalls.Reg):
-            cfg.setPokeBuyQty(PokeBalls.Reg.type, int(value))
-        if variable.lower() == str(PokeBalls.Great):
-            cfg.setPokeBuyQty(PokeBalls.Great.type, int(value))
-        if variable.lower() == str(PokeBalls.Ultra):
-            cfg.setPokeBuyQty(PokeBalls.Ultra.type, int(value))
-        if variable.lower() == str(PokeBalls.Master):
-            cfg.setPokeBuyQty(PokeBalls.Master.type, int(value))
-        return emb_success("Success!", f"Buying quantity for `{variable}` is set to `{value}`")
+
+        pb = PokeBalls.findball(variable)
+        pb.setBuyQty(int(value))
+        return emb_success("Success!", f"Buying quantity for `{pb.name}` is set to `{str(pb.buyqty)}`")
 
 
     def handleCatch(self, poke_rarities: str, ball_used: str, val_balls: List[str], mode_rarities: List[str]) -> None:
@@ -236,23 +226,11 @@ class Main(BotCmd.Cog):
             return emb_unspecified_value("catch", example, val_balls)
         if ball_used.lower() not in val_balls:
             return emb_wrong_value("catch", ball_used, "pokeball type", example)
-        if poke_rarities.lower() == str(PokeRarities.COMMON).lower():
-            cfg.setPokeThrow(PokeRarities.COMMON.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.UNCOMMON).lower():
-            cfg.setPokeThrow(PokeRarities.UNCOMMON.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.RARE).lower():
-            cfg.setPokeThrow(PokeRarities.RARE.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.SHINYF).lower():
-            cfg.setPokeThrow(PokeRarities.SHINYF.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.SUPERRARE).lower():
-            cfg.setPokeThrow(PokeRarities.SUPERRARE.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.LEGENDARY).lower():
-            cfg.setPokeThrow(PokeRarities.LEGENDARY.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.SHINYA).lower():
-            cfg.setPokeThrow(PokeRarities.SHINYA.type, ball_used)
-        if poke_rarities.lower() == str(PokeRarities.SHINYE).lower():
-            cfg.setPokeThrow(PokeRarities.SHINYE.type, ball_used)
-        return emb_success("Success!", f"`{poke_rarities.capitalize()}` is now catched using `{ball_used}`")
+
+        pr = PokeRarities.findRarity(poke_rarities)
+        pb = PokeBalls.findball(ball_used)
+        pr.setBall(pb)
+        return emb_success("Success!",  f"`{pr.name}` is now catched using `{pr.getBall().name}`")
 
 
 
