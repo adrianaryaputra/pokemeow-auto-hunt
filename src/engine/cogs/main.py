@@ -255,7 +255,6 @@ def txt_help_desc(): return f"""
 We help you to catch the best pokemon
 
 **⚠ WARNING!**
-Bot is under heavy developement
 use at your own risk!
 
 {txt_headl()}
