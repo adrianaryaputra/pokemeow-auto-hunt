@@ -2,6 +2,7 @@ import requests
 
 from tools.loadConfig import ConfigLoader
 from tools.observable import BasicPublisher
+from tools.formatcmd import dateprint, dateinput
 
 
 
@@ -50,6 +51,20 @@ class Config(BasicPublisher):
 
         self.value = BotValue()
 
+
+    def handleInvalidToken(self, token: str) -> None:
+        """
+        Handles an invalid token.
+        """
+        dateprint("Invalid token: " + token)
+        print("")
+        t = dateinput("Please enter your bot token: ")
+        vt = self.checkToken(t)
+        if vt is None:
+            return self.handleInvalidToken(t)
+        self.setToken(t)
+        
+
     
     def setToken(self, token: str) -> None:
         """
@@ -78,6 +93,7 @@ class Config(BasicPublisher):
         req = requests.get(url, headers=headers)
         if req.status_code != 200:
             self.notifySub({"InvalidToken": auth})
+            return None
         return auth
 
     

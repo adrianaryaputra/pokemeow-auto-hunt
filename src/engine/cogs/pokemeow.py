@@ -50,7 +50,6 @@ class PokeMeow(BotCmd.Cog):
         """
         send message on cog buffer if it exist
         """
-        print([str(msg) for msg in self.messageBuffer.list()]) if len(self.messageBuffer.list()) else None
         if not cfg.getPokeMeow(): return
         msg: DiscordMsgSend = self.messageBuffer.get()
         if msg:
@@ -110,7 +109,6 @@ class PokeMeow(BotCmd.Cog):
         """
         self.sendMessage(";f", self.channelF, lock=";f", nolock=False)
         self.loopF.change_interval(seconds=cfg.getPokeDelay(2))
-        print("Sending F")
 
 
     @BotTask.loop(seconds=cfg.getPokeDelay(1))
@@ -120,7 +118,6 @@ class PokeMeow(BotCmd.Cog):
         """
         self.sendMessage(";p", self.channelP, lock=";p", nolock=False)
         self.loopP.change_interval(seconds=cfg.getPokeDelay(1))
-        print("Sending P")
 
 
     @BotTask.loop(seconds=0.1)
@@ -132,18 +129,6 @@ class PokeMeow(BotCmd.Cog):
             self.catchlockcount = 0
 
 
-    def handleBuyBall(self, channel: discord.TextChannel) -> None:
-        """
-        handle buy ball
-        """
-        if PokeBalls.Reg.shouldbuy():
-            self.sendMessage(PokeBalls.Reg.buy(), channel)
-        if PokeBalls.Great.shouldbuy():
-            self.sendMessage(PokeBalls.Great.buy(), channel)
-        if PokeBalls.Ultra.shouldbuy():
-            self.sendMessage(PokeBalls.Ultra.buy(), channel)
-        if PokeBalls.Master.shouldbuy():
-            self.sendMessage(PokeBalls.Master.buy(), channel)
             
 
     async def handleCommandP(self, message: discord.Message) -> None:
@@ -178,51 +163,6 @@ class PokeMeow(BotCmd.Cog):
         _getPokeBall(embFootContent)
         self.sendMessage(rarity.ball(), message.channel, unlock=True)
         self.handleBuyBall(message.channel)
-
-
-
-    async def handleWaitTime(self, message: discord.Message) -> None:
-
-        def _getmatch(msg: str):
-            regex = re.search(r"(please wait)", msg) if msg else None
-            return regex.group(1) if regex else None
-
-        if not _getmatch(message.content): return
-        me = [name for name in message.mentions if name.id == self.bot.user.id]
-        if not len(me): return
-        print("PLEASE WAIT DETECTED")
-        if not self.catchlock: return
-        rc: str = self.catchlock
-        self.catchlock = None
-
-
-
-
-    async def handleCaptcha(self, message: discord.Message) -> None:
-
-        def _getmatch(msg: str):
-            regex = re.search(r"(please respond with the number)", msg) if msg else None
-            return regex.group(1) if regex else None
-
-        if not _getmatch(message.content): return
-        me = [name for name in message.mentions if name.id == self.bot.user.id]
-        if not len(me): return
-        print("CAPTCHA DETECTED!!")
-        cfg.setPokeMeow(False)
-
-
-    async def handleCaptchaComplete(self, message: discord.Message) -> None:
-
-        def _getmatch(msg: str):
-            regex = re.search(r"(thank you, you may continue hunting!)", msg) if msg else None
-            return regex.group(1) if regex else None
-
-        if not _getmatch(message.content): return
-        me = [name for name in message.mentions if name.id == self.bot.user.id]
-        if not len(me): return
-        print("CAPTCHA COMPLETE")
-        cfg.setPokeMeow(True)
-        self.catchlock = False
 
 
 
@@ -266,7 +206,11 @@ class PokeMeow(BotCmd.Cog):
         embed: discord.Embed = message.embeds[0] if message.embeds else None        
         embedname: str = _getTargetName(embed.description) if embed else ''
 
-        if embedname.lower() in [str(self.bot.user.name).lower(), cfg.getNickname().lower()]:
+        if not embedname: return
+        if embedname.lower() in [
+            str(self.bot.user.name).lower(), 
+            cfg.getNickname().lower()
+        ]:
             pull = _getPULL(embed.description) if embed else None
             nibble = _getNibble(embed.description) if embed else None
             runaway = _getRunaway(embed.description) if embed else None
@@ -276,36 +220,72 @@ class PokeMeow(BotCmd.Cog):
 
 
         if pull:
-            print("PULL!")
             self.sendMessage("pull", message.channel)
             return
 
         if pokeusedb:
-            print("POKE CATCH LEGENDARY")
             self.sendMessage("db", message.channel, unlock=True)
             # self.catchlock = False
             return
 
         if pokeusemb:
-            print("POKE CATCH SHINY")
             self.sendMessage("mb", message.channel, unlock=True)
             # self.catchlock = False
 
         if pokeusegb:
-            print("POKE CATCH FISH")
             self.sendMessage("gb", message.channel, unlock=True)
             # self.catchlock = False
             return
 
         if nibble: 
-            print("NIBBLE DETECTED")
             self.catchlock = False
             return
 
         if runaway: 
-            print("RUNAWAY DETECTED")
             self.catchlock = False
             return
+
+
+
+    async def handleWaitTime(self, message: discord.Message) -> None:
+
+        def _getmatch(msg: str):
+            regex = re.search(r"(please wait)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        if not self.catchlock: return
+        rc: str = self.catchlock
+        self.catchlock = None
+
+
+
+
+    async def handleCaptcha(self, message: discord.Message) -> None:
+
+        def _getmatch(msg: str):
+            regex = re.search(r"(please respond with the number)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        cfg.setPokeMeow(False)
+
+
+    async def handleCaptchaComplete(self, message: discord.Message) -> None:
+
+        def _getmatch(msg: str):
+            regex = re.search(r"(thank you, you may continue hunting!)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        cfg.setPokeMeow(True)
+        self.catchlock = False
 
 
 
@@ -320,6 +300,22 @@ class PokeMeow(BotCmd.Cog):
         self.messageBuffer.add(sender(msg, channel))
         if lock: self.catchlock = lock
         if unlock: self.catchlock = None
+
+
+
+
+    def handleBuyBall(self, channel: discord.TextChannel) -> None:
+        """
+        handle buy ball
+        """
+        if PokeBalls.Reg.shouldbuy():
+            self.sendMessage(PokeBalls.Reg.buy(), channel)
+        if PokeBalls.Great.shouldbuy():
+            self.sendMessage(PokeBalls.Great.buy(), channel)
+        if PokeBalls.Ultra.shouldbuy():
+            self.sendMessage(PokeBalls.Ultra.buy(), channel)
+        if PokeBalls.Master.shouldbuy():
+            self.sendMessage(PokeBalls.Master.buy(), channel)
 
 
 
