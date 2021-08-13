@@ -22,7 +22,9 @@ class Main(BotCmd.Cog):
         ping the bot
         """
         await ctx.message.delete()
-        await ctx.send(f"pong! {self.bot.latency}")
+        msg = await ctx.send(f"pong! {self.bot.latency}")
+        await asyncio.sleep(5)
+        await msg.delete()
 
     @BotCmd.command(aliases=["h"])
     async def help(self, ctx: BotCmd.Context) -> None:
@@ -40,7 +42,9 @@ class Main(BotCmd.Cog):
         emb.add_field(name="`$disable [nitro|pokemeow]`", value="Disable bot\n‎", inline=False)
         emb.add_field(name="`$poke [start|stop] <p|f>`", value="start auto poke catch or fish\n‎", inline=False)
         emb.set_footer(text = txt_footl())
-        await ctx.send(embed=emb)
+        msg = await ctx.send(embed=emb)
+        await asyncio.sleep(60)
+        await msg.delete()
 
     @BotCmd.command(aliases=["stats", "q"])
     async def config(self, ctx: BotCmd.Context) -> None:
@@ -57,7 +61,7 @@ class Main(BotCmd.Cog):
         emb.add_field(name="**PokeMeow Catch Ball Selection**", value=txt_config_f_rarity(), inline=False)
         emb.set_footer(text=txt_footl())
         msg = await ctx.send(embed=emb)
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)
         await msg.delete()
 
 
@@ -83,7 +87,7 @@ class Main(BotCmd.Cog):
             emb.add_field(name=f"`$set {modesel[3]} [rarity] <ball>`", value=txt_set_catch(ballsel, raritysel), inline=False)
             emb.set_footer(text=txt_footl())
             msg = await ctx.send(embed=emb)
-            await asyncio.sleep(5)
+            await asyncio.sleep(60)
             await msg.delete()
 
         elif mode == "delay":
@@ -108,7 +112,7 @@ class Main(BotCmd.Cog):
 
         else:
             msg = await ctx.send(embed = emb_wrong_mode("set", mode, modesel))
-            await asyncio.sleep(5)
+            await asyncio.sleep(20)
             await msg.delete()
 
     @BotCmd.command()
@@ -121,7 +125,7 @@ class Main(BotCmd.Cog):
         await ctx.message.delete()
         if mode == "":
             msg = await ctx.send(embed = emb_unspecified_mode("enable", bots, example))
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             await msg.delete()
             return
         if mode.lower() == "nitro":
@@ -130,7 +134,7 @@ class Main(BotCmd.Cog):
             cfg.setPokeMeow(True)
         else:
             msg = await ctx.send(embed = emb_wrong_mode("enable", mode, bots))
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             await msg.delete()
             return
         msg = await ctx.send(embed = emb_success("Success!", f"`{mode.capitalize()}` is `{toggleMaker(True)}`..."))
@@ -148,7 +152,7 @@ class Main(BotCmd.Cog):
         await ctx.message.delete()
         if mode == "":
             msg = await ctx.send(embed = emb_unspecified_mode("disable", bots, example))
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             await msg.delete()
             return
         if mode.lower() == "nitro":
@@ -157,7 +161,7 @@ class Main(BotCmd.Cog):
             cfg.setPokeMeow(False)
         else:
             msg = await ctx.send(embed = emb_wrong_mode("disable", mode, bots))
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
             await msg.delete()
             return
         msg = await ctx.send(embed = emb_success("Success!", f"`{mode.capitalize()}` is `{toggleMaker(False)}`..."))
