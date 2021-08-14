@@ -177,7 +177,7 @@ class PokeMeow(BotCmd.Cog):
             return regex.group(1) if regex else None
 
         def _getPokeName(msg: str) -> str:
-            regex = re.search(r"(Kyoigre|Suicune)", msg) if msg else None
+            regex = re.search(r"(Kyogre|Suicune)", msg) if msg else None
             return regex.group(1) if regex else None
 
         def _getPokeShiny(msg: str) -> bool:
