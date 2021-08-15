@@ -249,7 +249,7 @@ def setup(bot) -> None:
 # WELCOME TO TRASHLAND
 
 def txt_headl(): return "=============================="
-def txt_footl(): return "============ Farabot © 2021 ============"
+def txt_footl(): return "============ MeowBot © 2021 ============"
 def toggleMaker(toggle: bool): return "Enabled ✅" if toggle else "Disabled ❌"
 def txt_help_desc(): return f"""
 We help you to catch the best pokemon
