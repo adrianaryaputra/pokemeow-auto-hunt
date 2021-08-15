@@ -145,11 +145,12 @@ class PokeMeow(BotCmd.Cog):
         def _getPokeBall(msg: str) -> None:
             m = msg.replace(',', '').replace('.', '') if msg else None
             regex = re.findall(r"balls[ ]*:[ ]*([0-9]+)", m) if m else None
-            if len(regex) == 5:
+            if len(regex) >= 4:
                 PokeBalls.Reg.setCount(int(regex[0]))
                 PokeBalls.Ultra.setCount(int(regex[1]))
                 PokeBalls.Great.setCount(int(regex[2]))
                 PokeBalls.Master.setCount(int(regex[3]))
+            if len(regex) >= 5:
                 PokeBalls.Premier.setCount(int(regex[4]))
 
         targetname = _getTargetName(message.content)
