@@ -232,6 +232,7 @@ class PokeMeow(BotCmd.Cog):
         if pokeusemb:
             await asyncio.sleep(1)
             self.sendMessage("mb", message.channel, unlock=True)
+            return
 
         if pokeusegb:
             await asyncio.sleep(1)
@@ -296,8 +297,7 @@ class PokeMeow(BotCmd.Cog):
         if msg in [str(msg) for msg in self.messageBuffer.list()]: return
         if msg == self.catchlock: return
 
-        if not nolock: 
-            if self.catchlock: return
+        if not nolock and self.catchlock: return
         self.messageBuffer.add(sender(msg, channel))
         if lock: self.catchlock = lock
         if unlock: self.catchlock = None
