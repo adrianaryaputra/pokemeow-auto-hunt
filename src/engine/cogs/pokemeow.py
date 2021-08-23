@@ -232,6 +232,7 @@ class PokeMeow(BotCmd.Cog):
         if pokeusemb:
             await asyncio.sleep(1)
             self.sendMessage("mb", message.channel, unlock=True)
+            return
 
         if pokeusegb:
             await asyncio.sleep(1)
