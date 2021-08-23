@@ -296,8 +296,7 @@ class PokeMeow(BotCmd.Cog):
         if msg in [str(msg) for msg in self.messageBuffer.list()]: return
         if msg == self.catchlock: return
 
-        if not nolock: 
-            if self.catchlock: return
+        if not nolock and self.catchlock: return
         self.messageBuffer.add(sender(msg, channel))
         if lock: self.catchlock = lock
         if unlock: self.catchlock = None
@@ -310,16 +309,16 @@ class PokeMeow(BotCmd.Cog):
         handle buy ball
         """
         if PokeBalls.Reg.shouldbuy():
-            await asyncio.sleep(2)
+            await asyncio.sleep(4)
             self.sendMessage(PokeBalls.Reg.buy(), channel)
         if PokeBalls.Great.shouldbuy():
-            await asyncio.sleep(2)
+            await asyncio.sleep(4)
             self.sendMessage(PokeBalls.Great.buy(), channel)
         if PokeBalls.Ultra.shouldbuy():
-            await asyncio.sleep(2)
+            await asyncio.sleep(4)
             self.sendMessage(PokeBalls.Ultra.buy(), channel)
         if PokeBalls.Master.shouldbuy():
-            await asyncio.sleep(2)
+            await asyncio.sleep(4)
             self.sendMessage(PokeBalls.Master.buy(), channel)
 
 
