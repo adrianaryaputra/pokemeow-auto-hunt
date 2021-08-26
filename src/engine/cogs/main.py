@@ -58,7 +58,7 @@ class Main(BotCmd.Cog):
         emb.add_field(name="**PokeMeow Delay Value**", value=txt_config_f_delay(), inline=False)
         emb.add_field(name="**PokeMeow Minimum Ball Stock**", value=txt_config_f_min(), inline=False)
         emb.add_field(name="**PokeMeow Ball Buying Lot**", value=txt_config_f_lot(), inline=False)
-        emb.add_field(name="**PokeMeow Catch Ball Selection**", value=txt_config_f_rarity(), inline=False)
+        emb.add_field(name="**PokeMeow Catch Ball Selection**", value=gen_f_rarity(), inline=False)
         emb.set_footer(text=txt_footl())
         msg = await ctx.send(embed=emb)
         await asyncio.sleep(60)
@@ -88,32 +88,23 @@ class Main(BotCmd.Cog):
             emb.set_footer(text=txt_footl())
             msg = await ctx.send(embed=emb)
             await asyncio.sleep(60)
-            await msg.delete()
-
         elif mode == "delay":
             msg = await ctx.send(embed = self.handleDelay(variable, value, pokecmd))
             await asyncio.sleep(5)
-            await msg.delete()
-
         elif mode == "stock":
             msg = await ctx.send(embed = self.handleStock(variable, value, ballbuyable))
             await asyncio.sleep(5)
-            await msg.delete()
-
         elif mode == "buy":
             msg = await ctx.send(embed = self.handleBuy(variable, value, ballbuyable))
             await asyncio.sleep(5)
-            await msg.delete()
-
         elif mode == "catch":
             msg = await ctx.send(embed = self.handleCatch(variable, value, ballsel, raritysel))
             await asyncio.sleep(5)
-            await msg.delete()
-
         else:
             msg = await ctx.send(embed = emb_wrong_mode("set", mode, modesel))
             await asyncio.sleep(20)
-            await msg.delete()
+
+        await msg.delete()
 
     @BotCmd.command()
     async def enable(self, ctx: BotCmd.Context, mode: str = "") -> None:
@@ -290,6 +281,10 @@ UltraBall : `{  cfg.getPokeBuyQty(3)} pcs`
 MasterBall : `{ cfg.getPokeBuyQty(4)} pcs`
 ‎
 """
+def gen_f_rarity():
+    rarities = PokeRarities.getRarities()
+    rprint = [f"{r.name}: `{r.ball()} ball`" for r in rarities]
+    return "\n".join(rprint)
 def txt_config_f_rarity(): return f"""
 Common : `{      cfg.getPokeThrow(1)} ball`
 Uncommon : `{    cfg.getPokeThrow(2)} ball`

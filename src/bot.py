@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     print("====================================")
     print("   Welcome to PokeMeow Sniper Bot   ")
-    print("           Farabot © 2021           ")
+    print("           Meowbot © 2021           ")
     print("====================================")
     print("")
     print("")

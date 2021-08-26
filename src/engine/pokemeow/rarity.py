@@ -50,19 +50,26 @@ class PokeRarities:
     LEGENDARY: PokeRarity = PokeRarity(r"Legendary", "Legendary", 6)
     SHINYA: PokeRarity = PokeRarity(r"Shiny \(A", "ShinyApprox", 7)
     SHINYE: PokeRarity = PokeRarity(r"Shiny \(E", "ShinyEvent", 8)
+    SHINY: PokeRarity = PokeRarity(r"Shiny \([0-9]", "Shiny", 9)
+    FISH_NORMAL: PokeRarity = PokeRarity(r"fished out", "FishNormal", 10)
+    FISH_KYOGRE: PokeRarity = PokeRarity(r"fished out", "FishKyogre", 11)
+    FISH_SUICUNE: PokeRarity = PokeRarity(r"fished out", "FishSuicune", 12)
+    FISH_SHINY: PokeRarity = PokeRarity(r"fished out", "FishShiny", 13)
+    FISH_GOLDEN: PokeRarity = PokeRarity(r"fished out", "FishGolden", 14)
 
     @classmethod
     def compiledRe(self) -> str:
-        return r"({})".format("|".join([r.re() for r in [
-            self.COMMON,
-            self.UNCOMMON,
-            self.RARE,
-            self.SHINYF,
-            self.SUPERRARE,
-            self.LEGENDARY,
-            self.SHINYA,
-            self.SHINYE
-        ]]))
+        return r"({})".format("|".join(r.re() for r in [
+                self.COMMON,
+                self.UNCOMMON,
+                self.RARE,
+                self.SHINYF,
+                self.SUPERRARE,
+                self.LEGENDARY,
+                self.SHINYA,
+                self.SHINYE,
+                self.SHINY
+            ]))
 
     @classmethod
     def reg2type(self, reg: str) -> str:
@@ -74,7 +81,8 @@ class PokeRarities:
             self.SUPERRARE, 
             self.LEGENDARY, 
             self.SHINYA, 
-            self.SHINYE
+            self.SHINYE,
+            self.SHINY
         ]:
             if re.match(r.re(), reg):
                 return r
@@ -104,5 +112,11 @@ class PokeRarities:
             self.SUPERRARE,
             self.LEGENDARY,
             self.SHINYA,
-            self.SHINYE
+            self.SHINYE,
+            self.SHINY,
+            self.FISH_NORMAL,
+            self.FISH_KYOGRE,
+            self.FISH_SUICUNE,
+            self.FISH_SHINY,
+            self.FISH_GOLDEN,
         ]

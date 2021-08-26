@@ -177,12 +177,20 @@ class PokeMeow(BotCmd.Cog):
             regex = re.search(r"(`PULL`)", msg) if msg else None
             return regex.group(1) if regex else None
 
-        def _getPokeName(msg: str) -> str:
-            regex = re.search(r"(Kyogre|Suicune)", msg) if msg else None
+        def _getPokeKyogre(msg: str) -> str:
+            regex = re.search(r"(Kyogre)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        def _getPokeSuicune(msg: str) -> str:
+            regex = re.search(r"(Kyogre)", msg) if msg else None
             return regex.group(1) if regex else None
 
         def _getPokeShiny(msg: str) -> bool:
-            regex = re.search(r"(Shiny|Golden)", msg) if msg else None
+            regex = re.search(r"(Shiny)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        def _getPokeGolden(msg: str) -> bool:
+            regex = re.search(r"(Golden)", msg) if msg else None
             return regex.group(1) if regex else None
 
         def _getPokeFished(msg: str) -> str:
@@ -200,9 +208,11 @@ class PokeMeow(BotCmd.Cog):
         pull: str = None
         nibble: str = None
         runaway: str = None
-        pokeusedb: str = None
-        pokeusemb: str = None
-        pokeusegb: str = None
+        pokegKyogre: str = None
+        pokegSuicune: str = None
+        pokegShiny: str = None
+        pokegGolden: str = None
+        pokegNormal: str = None
 
         embed: discord.Embed = message.embeds[0] if message.embeds else None        
         embedname: str = _getTargetName(embed.description) if embed else ''
@@ -215,28 +225,56 @@ class PokeMeow(BotCmd.Cog):
             pull = _getPULL(embed.description) if embed else None
             nibble = _getNibble(embed.description) if embed else None
             runaway = _getRunaway(embed.description) if embed else None
-            pokeusedb = _getPokeName(embed.description) if embed else None
-            pokeusemb = _getPokeShiny(embed.description) if embed else None
-            pokeusegb = _getPokeFished(embed.description) if embed else None
+            pokegKyogre = _getPokeKyogre(embed.description) if embed else None
+            pokegSuicune = _getPokeSuicune(embed.description) if embed else None
+            pokegShiny = _getPokeShiny(embed.description) if embed else None
+            pokegGolden = _getPokeGolden(embed.description) if embed else None
+            pokegNormal = _getPokeFished(embed.description) if embed else None
 
 
         if pull:
             self.sendMessage("pull", message.channel)
             return
 
-        if pokeusedb:
+        if pokegKyogre:
             await asyncio.sleep(1)
-            self.sendMessage("db", message.channel, unlock=True)
-            return
+            self.sendMessage(
+                PokeRarities.FISH_KYOGRE.ball(), 
+                message.channel, 
+                unlock=True
+            )
 
-        if pokeusemb:
+        if pokegSuicune:
             await asyncio.sleep(1)
-            self.sendMessage("mb", message.channel, unlock=True)
+            self.sendMessage(
+                PokeRarities.FISH_SUICUNE.ball(), 
+                message.channel, 
+                unlock=True
+            )
 
-        if pokeusegb:
+        if pokegShiny:
             await asyncio.sleep(1)
-            self.sendMessage("gb", message.channel, unlock=True)
-            return
+            self.sendMessage(
+                PokeRarities.FISH_SHINY.ball(), 
+                message.channel, 
+                unlock=True
+            )
+
+        if pokegGolden:
+            await asyncio.sleep(1)
+            self.sendMessage(
+                PokeRarities.FISH_GOLDEN.ball(), 
+                message.channel, 
+                unlock=True
+            )
+
+        if pokegNormal:
+            await asyncio.sleep(1)
+            self.sendMessage(
+                PokeRarities.FISH_NORMAL.ball(), 
+                message.channel, 
+                unlock=True
+            )
 
         if nibble: 
             self.catchlock = False
