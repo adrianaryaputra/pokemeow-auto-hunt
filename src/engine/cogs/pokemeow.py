@@ -35,6 +35,7 @@ class PokeMeow(BotCmd.Cog):
             await self.handleCommandP(message)
             await self.handleWaitTime(message)
             await self.handleCaptcha(message)
+            await self.handleWrongCaptcha(message)
             await self.handleCaptchaComplete(message)
             return
 
@@ -347,7 +348,7 @@ class PokeMeow(BotCmd.Cog):
         response = requests.get(imageurl, allow_redirects=True)
         if not response.ok: return None
         try:
-            return (
+            res: str = (
                 self.captchasolver.solve_captcha(
                     response.content,
                     hintText=f"{hintText} is a WRONG captcha. try other number.",
@@ -355,6 +356,9 @@ class PokeMeow(BotCmd.Cog):
                 if hintText
                 else self.captchasolver.solve_captcha(response.content)
             )
+
+            if res.isdigit(): return res
+            return None
 
         except:
             return None
