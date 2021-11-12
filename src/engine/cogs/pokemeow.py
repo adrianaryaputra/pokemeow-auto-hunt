@@ -315,10 +315,49 @@ class PokeMeow(BotCmd.Cog):
 
         if len(message.attachments) > 0:
             print(message.attachments[0].url)
-            response = requests.get(message.attachments[0].url, allow_redirects=True)
-            if not response.ok: return
-            captchares = self.captchasolver.solve_captcha(response.content)
+            captchares = None
+            while captchares is None:
+                captchares = self.solveCaptcha(message.attachments[0].url)
+            self.lastCaptcha = captchares
             await message.channel.send(captchares)
+
+
+    async def handleWrongCaptcha(self, message: discord.Message) -> None:
+
+        def _getmatch(msg: str):
+            regex = re.search(r"(Please enter your captcha correctly)", msg) if msg else None
+            return regex.group(1) if regex else None
+
+        if not _getmatch(message.content): return
+        me = [name for name in message.mentions if name.id == self.bot.user.id]
+        if not len(me): return
+        cfg.setPokeMeow(False)
+
+        if len(message.attachments) > 0:
+            print(message.attachments[0].url)
+            captchares = None
+            while captchares is None:
+                captchares = self.solveCaptcha(message.attachments[0].url, self.lastCaptcha)
+            self.lastCaptcha: str = captchares
+            await message.channel.send(captchares)
+
+
+    def solveCaptcha(self, imageurl: str, hintText: str = None) -> str:
+        print("solving captcha")
+        response = requests.get(imageurl, allow_redirects=True)
+        if not response.ok: return None
+        try:
+            return (
+                self.captchasolver.solve_captcha(
+                    response.content,
+                    hintText=f"{hintText} is a WRONG captcha. try other number.",
+                )
+                if hintText
+                else self.captchasolver.solve_captcha(response.content)
+            )
+
+        except:
+            return None
 
 
     async def handleCaptchaComplete(self, message: discord.Message) -> None:
