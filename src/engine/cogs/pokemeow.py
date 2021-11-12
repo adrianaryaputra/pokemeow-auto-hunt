@@ -1,4 +1,4 @@
-import asyncio, re, time, discord
+import asyncio, re, time, discord, requests, random
 from discord.ext import commands as BotCmd
 from discord.ext import tasks as BotTask
 from threading import Thread
@@ -9,7 +9,7 @@ from tools.discordMessageSender import DiscordMsgSend, send as sender
 from engine.configurator import cfg
 from engine.pokemeow import PokeRarity, PokeRarities, PokeBalls
 
-
+from captcha_solver import CaptchaSolver
 
 
 class PokeMeow(BotCmd.Cog):
@@ -18,6 +18,7 @@ class PokeMeow(BotCmd.Cog):
     def __init__(self, bot: BotCmd.Bot) -> None:
         self.bot = bot
         self.token = cfg.getToken()
+        self.captchasolver = CaptchaSolver("2captcha", api_key=cfg.getCaptchaToken()) 
         self.catchlock = None
         self.catchlocklimit = 50
         self.catchlockcount = 0
@@ -65,6 +66,7 @@ class PokeMeow(BotCmd.Cog):
         pokecmdsel = ["p", "f"]
         example = f"example: `$poke {togglesel[0]} {pokecmdsel[0]}`"
 
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
 
         if not cfg.getPokeMeow():
@@ -162,7 +164,9 @@ class PokeMeow(BotCmd.Cog):
         if not rarity: return
         if targetname != self.bot.user.name: return
         _getPokeBall(embFootContent)
+        await asyncio.sleep(random.uniform(2.0, 3.0))
         self.sendMessage(rarity.ball(), message.channel, unlock=True)
+        await asyncio.sleep(random.uniform(0.5, 1.0))
         await self.handleBuyBall(message.channel)
 
 
@@ -231,13 +235,13 @@ class PokeMeow(BotCmd.Cog):
             pokegGolden = _getPokeGolden(embed.description) if embed else None
             pokegNormal = _getPokeFished(embed.description) if embed else None
 
-
         if pull:
             self.sendMessage("pull", message.channel)
             return
 
+        await asyncio.sleep(random.uniform(1.5, 2.5))
+
         if pokegKyogre:
-            await asyncio.sleep(1)
             self.sendMessage(
                 PokeRarities.FISH_KYOGRE.ball(), 
                 message.channel, 
@@ -245,7 +249,6 @@ class PokeMeow(BotCmd.Cog):
             )
 
         if pokegSuicune:
-            await asyncio.sleep(1)
             self.sendMessage(
                 PokeRarities.FISH_SUICUNE.ball(), 
                 message.channel, 
@@ -253,7 +256,6 @@ class PokeMeow(BotCmd.Cog):
             )
 
         if pokegShiny:
-            await asyncio.sleep(1)
             self.sendMessage(
                 PokeRarities.FISH_SHINY.ball(), 
                 message.channel, 
@@ -261,7 +263,6 @@ class PokeMeow(BotCmd.Cog):
             )
 
         if pokegGolden:
-            await asyncio.sleep(1)
             self.sendMessage(
                 PokeRarities.FISH_GOLDEN.ball(), 
                 message.channel, 
@@ -269,7 +270,6 @@ class PokeMeow(BotCmd.Cog):
             )
 
         if pokegNormal:
-            await asyncio.sleep(1)
             self.sendMessage(
                 PokeRarities.FISH_NORMAL.ball(), 
                 message.channel, 
@@ -313,6 +313,13 @@ class PokeMeow(BotCmd.Cog):
         if not len(me): return
         cfg.setPokeMeow(False)
 
+        if len(message.attachments) > 0:
+            print(message.attachments[0].url)
+            response = requests.get(message.attachments[0].url, allow_redirects=True)
+            if not response.ok: return
+            captchares = self.captchasolver.solve_captcha(response.content)
+            await message.channel.send(captchares)
+
 
     async def handleCaptchaComplete(self, message: discord.Message) -> None:
 
@@ -347,16 +354,16 @@ class PokeMeow(BotCmd.Cog):
         handle buy ball
         """
         if PokeBalls.Reg.shouldbuy():
-            await asyncio.sleep(4)
+            await asyncio.sleep(5)
             self.sendMessage(PokeBalls.Reg.buy(), channel)
         if PokeBalls.Great.shouldbuy():
-            await asyncio.sleep(4)
+            await asyncio.sleep(5)
             self.sendMessage(PokeBalls.Great.buy(), channel)
         if PokeBalls.Ultra.shouldbuy():
-            await asyncio.sleep(4)
+            await asyncio.sleep(5)
             self.sendMessage(PokeBalls.Ultra.buy(), channel)
         if PokeBalls.Master.shouldbuy():
-            await asyncio.sleep(4)
+            await asyncio.sleep(5)
             self.sendMessage(PokeBalls.Master.buy(), channel)
 
 

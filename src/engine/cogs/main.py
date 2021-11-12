@@ -21,6 +21,7 @@ class Main(BotCmd.Cog):
         """
         ping the bot
         """
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
         msg = await ctx.send(f"pong! {self.bot.latency}")
         await asyncio.sleep(5)
@@ -31,6 +32,7 @@ class Main(BotCmd.Cog):
         """
         show help
         """
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
         emb = discord.Embed(title="Welcome to PokeMeow Sniper Bot!", color=discord.Color(0))
         emb.description = txt_help_desc()
@@ -51,6 +53,7 @@ class Main(BotCmd.Cog):
         """
         show configuration
         """
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
         emb = discord.Embed(title="PokeMeow Sniper Configuration", color=discord.Color(0))
         emb.description = txt_config_desc()
@@ -70,6 +73,7 @@ class Main(BotCmd.Cog):
         """
         set configuration
         """
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
         modesel = ["delay", "stock", "buy", "catch"]
         ballbuyable = [str(b).lower() for b in PokeBalls.getBalls()][0:4]
@@ -113,6 +117,7 @@ class Main(BotCmd.Cog):
         """
         bots = ["nitro", "pokemeow"]
         example = f"\nexample: `$enable {bots[0]}`"
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
         if mode == "":
             msg = await ctx.send(embed = emb_unspecified_mode("enable", bots, example))
@@ -140,6 +145,7 @@ class Main(BotCmd.Cog):
         """
         bots = ["nitro", "pokemeow"]
         example = f"\nexample: `$disable {bots[0]}`"
+        await asyncio.sleep(0.1)
         await ctx.message.delete()
         if mode == "":
             msg = await ctx.send(embed = emb_unspecified_mode("disable", bots, example))

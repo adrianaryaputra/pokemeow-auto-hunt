@@ -39,6 +39,7 @@ class Config(BasicPublisher):
             token = self._cfg.getConfigOption("Discord", "token")
             prefix = self._cfg.getConfigOption("Opt", "prefix")
             nickname = self._cfg.getConfigOption("PokeMeow", "nickname")
+            captchatoken = self._cfg.getConfigOption("2captcha", "token")
             
             nitro = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "nitro"))
             giveaway = self._cfg.yn2bool(self._cfg.getConfigOption("Bot", "giveaway"))
@@ -64,7 +65,6 @@ class Config(BasicPublisher):
             return self.handleInvalidToken(t)
         self.setToken(t)
         
-
     
     def setToken(self, token: str) -> None:
         """
@@ -95,6 +95,13 @@ class Config(BasicPublisher):
             self.notifySub({"InvalidToken": auth})
             return None
         return auth
+
+
+    def getCaptchaToken(self) -> str:
+        """
+        Returns the value for the 2captcha token option.
+        """
+        return self.value.captchatoken
 
     
     def setNitro(self, nitro: bool) -> None:

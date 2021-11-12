@@ -1,3 +1,4 @@
+captcha-solver
 discord.py-self
 aiohttp
 requests
